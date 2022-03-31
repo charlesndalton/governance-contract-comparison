@@ -163,6 +163,80 @@ Depends entirely on the modules you use.
 
 Score: N/A
 
+### **Colony**
+
+#### <ins>Overview</ins>
+
+Relative to the prior two, Colony's product is much more expansive. Instead of just trying to solve governance of smart contracts, "Colony is designed for day-to-day operation of an organization." 
+
+Colony focuses on these parts of DAOs:
+
+
+##### **Domains and permissions**:
+
+ Colony has the concept of domains, which can be created for the colony, similar to the concept of a business unit. The primary purpose of domains is to manage individuals' authority. For example, in a Colony DAO, you would be able to create a 'Development' domain and a 'Marketing' domain, and have some people be highly-trusted in development but not marketing and vice versa. People in the colony are assigned domain-specific permissions. There are 6 different permissions, each of which allows you to take action in the colony. For example, the 'administration' permission would allow an Ethereum account to create expenditures in a Colony. It's possible that FIAT DAO could use these permissions in other smart contracts. These contracts would use the below modifier: 
+```
+function hasUserRole(address _user, uint256 _domainId, ColonyRole _role)
+```
+For example, FIAT could have a 2/9 multisig safe responsible for adding collateral vaults, and give the safe's account the 'administration' permission in the vault domain. Then, you could change L17 of VaultFactory.sol ([src](https://github.com/fiatdao/vaults/blob/97bd2acededb9fafc11f1e8fa9a1ac1154c2f86e/src/VaultFactory.sol#L17)) to look like 
+```
+function createVault(address impl, bytes calldata params) external hasUserRole(msg.sender, 0, ColonyRole.Administrator) returns (address) {
+```
+if 0 was the domain ID for vaults.
+
+##### **Funding and expenditures**:
+
+Each domain has a 'funding pot' which it can manage. From this funding pot, tokens can be moved out (e.g., to pay someone) via 'expenditures,' which can be approved by those that hold the funding permission.
+
+##### **Reputation**:
+
+People can earn reputation in different domains. Reputation is earned by others' endorsements – think of this like the endorsement of skills on LinkedIn. 
+
+##### **Motions & Disputes**:
+
+When a colony member wants to change something (e.g., move money from one funding pot to another), they may make a 'motion', and then stake some of their reputation on that motion. Others may also stake their reputation on that motion. After a certain time period has elapsed, it automatically passes. If someone wants to stop the motion, they may raise a 'dispute.' At this point, it would move to reputation-weighted voting.
+
+#### <ins>Analysis & Scoring</ins>
+
+##### Ability to use sub-committees / not engage entire community for all decisions
+
+It would be possible to use Colony's permission and domain system to manage arbitrary execution of smart contract functions, but permissions and domains were not designed with this in mind. As such, there are only 6 permissions, and new ones cannot be added (without changing Colony's code). 
+
+Score: 2
+
+##### Ability to lock FDT
+
+Colony doesn't provide native support for token locking.
+
+Score: 1
+
+##### How the code is written and maintained
+
+I wasn't a huge fan of the quality of the code. For example, look [here](https://github.com/JoinColony/colonyNetwork/blob/develop/contracts/colony/ColonyRoles.sol#L33-L83) to see code copy pasted when it could have been consolidated into a single internal function. 
+
+There are 30 contributors to the core GitHub repo, but most of the core contracts have only been modified by two.
+
+Score: 2
+
+
+##### How many audits have been performed & the quality of the auditors
+
+"We also make no guarantees about Colony’s security or fitness for purpose; the Colony Network smart contracts are large, complex, and under active development, which makes audit impractical." ([source](https://blog.colony.io/colony-v2-launch/))
+
+Score: 1
+
+##### An "exit lever" i.e., the ability to switch to another governance contract
+
+The Colony contracts themselves follow the EtherRouter upgradeable pattern ([src](https://github.com/JoinColony/colonyNetwork/blob/806e4d5750dc3a6b9fa80f6e007773b28327c90f/contracts/common/EtherRouter.sol)). However, I can imagine that it might be tricky to migrate the FIAT contracts away from using the Colony permission system.
+
+Score: 3
+
+##### Gas efficiency
+
+TBD
+
+Score: TBD
+
 ### **Protocol**
 
 #### <ins>Overview</ins>
