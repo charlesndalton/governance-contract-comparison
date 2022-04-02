@@ -294,9 +294,11 @@ Score: 4
 
 ##### An "exit lever" i.e., the ability to switch to another governance contract
 
-As mentioned earlier, it uses an upgradeable pattern that would allow changing / extending functionality 
+As mentioned earlier, it uses an upgradeable pattern that would allow changing / extending functionality.
 
-Score: 4
+If FIAT wanted to start with the existing code, but then change something (e.g., remove timelock, add vote-locking, etc.) that would be possible – you would just need the change to pass through the existing governance process, since you would need governance permission to change the delegator's (proxy's) implementation.
+
+Score: 5
 
 ##### Gas efficiency
 
