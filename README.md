@@ -237,51 +237,6 @@ TBD
 
 Score: TBD
 
-### **Protocol**
-
-#### <ins>Overview</ins>
-
-Text
-
-#### <ins>Analysis & Scoring</ins>
-
-##### Ability to use sub-committees / not engage entire community for all decisions
-
-Text
-
-Score: TBD
-
-##### Ability to lock FDT
-
-Text
-
-Score: TBD
-
-##### How the code is written and maintained
-
-Text
-
-Score: TBD
-
-
-##### How many audits have been performed & the quality of the auditors
-
-Text
-
-Score: TBD
-
-##### An "exit lever" i.e., the ability to switch to another governance contract
-
-Text
-
-Score: TBD
-
-##### Gas efficiency
-
-Text
-
-Score: TBD
-
 ### **Compound Governance**
 
 #### <ins>Overview</ins>
@@ -349,6 +304,50 @@ TBD
 
 Score: TBD
 
+### **Protocol**
+
+#### <ins>Overview</ins>
+
+Text
+
+#### <ins>Analysis & Scoring</ins>
+
+##### Ability to use sub-committees / not engage entire community for all decisions
+
+Text
+
+Score: TBD
+
+##### Ability to lock FDT
+
+Text
+
+Score: TBD
+
+##### How the code is written and maintained
+
+Text
+
+Score: TBD
+
+
+##### How many audits have been performed & the quality of the auditors
+
+Text
+
+Score: TBD
+
+##### An "exit lever" i.e., the ability to switch to another governance contract
+
+Text
+
+Score: TBD
+
+##### Gas efficiency
+
+Text
+
+Score: TBD
 
 ### **References**
 
