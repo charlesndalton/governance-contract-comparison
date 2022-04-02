@@ -282,6 +282,73 @@ Text
 
 Score: TBD
 
+### **Compound Governance**
+
+#### <ins>Overview</ins>
+
+##### High-level
+
+Compound's governance system was arguably the first serious implementation of decentralized DeFi governance. Here's how it works:
+- COMP token holders have a pro-rata share of control over the Compound Protocol. They can either keep this voting control or delegate it to an account (or accounts) of their choice.
+- Anyone who has the voting power of 25k COMP, either through their holdings or voting power they've been delegated, can propose a governance action, which is a function call or a series of calls that can be made by the governance contract.
+- Once a proposal achieves a threshold of votes, it is queued in the timelock, and can be executed after x days (x = 2 in Compound's case).
+
+##### The code 💻
+
+Under the hood, the governance contracts follow an upgradeable delegator-delegate pattern, where the [delegator](https://github.com/compound-finance/compound-protocol/blob/master/contracts/Governance/GovernorBravoDelegator.sol) is a typical proxy contract where an admin has the ability to swap out the implementation by calling the *_setImplementation* function.
+
+Then, someone wanting to introduce a governance proposal would call the following function:
+
+```
+function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint)
+```
+
+After that, people can vote by calling one of three functions: castVote, castVoteWithReason, or castVoteBySig. Once it achieves sufficient votes, anyone can call *queue(uint proposalId)* to move it into the timelock. 
+
+Then comes the last stage: execution. Someone calls *execute(uint proposalId)*, which in turn calls *timelock.executeTransaction.* It's the timelock, then, that executes all of the function calls [here](https://github.com/compound-finance/compound-protocol/blob/3affca87636eecd901eb43f81a4813186393905d/contracts/Timelock.sol#L99). *To the rest of the system, the admin isn't the core governance module, it's the timelock contract* (e.g., see [cBAT](https://etherscan.io/address/0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e#readContract)).
+
+All in all, Compound is a simple system. That carries advantages in terms of security and developability, but also means that any new features (e.g., vote-locked FDT) would need to be home-grown.
+
+#### <ins>Analysis & Scoring</ins>
+
+##### Ability to use sub-committees / not engage entire community for all decisions
+
+No. The core Compound governance system is built such that the only way that calls can be executed by the timelock is through the voting & waiting process.
+
+Score: 2
+
+##### Ability to lock FDT
+
+Possible to build, because the governance contract is upgradeable, but not natively built in.
+
+Score: 2
+
+##### How the code is written and maintained
+
+As mentioned, the code is simple and easy-to-follow, and would be relatively easy to modify.
+
+The key problem would be extensibility. The code isn't very modular – it's fairly tied to the Compound governance flow. For an example, look at this [block](https://github.com/compound-finance/compound-protocol/blob/3affca87636eecd901eb43f81a4813186393905d/contracts/Governance/GovernorBravoDelegate.sol#L208-L224) which decodes the state of a proposal.
+
+Score: 3
+
+##### How many audits have been performed & the quality of the auditors
+
+OpenZeppelin and Trail of Bits audits on V1. We're now in V2, but not much has changed in the core code.
+
+Score: 4
+
+##### An "exit lever" i.e., the ability to switch to another governance contract
+
+As mentioned earlier, it uses an upgradeable pattern that would allow changing / extending functionality 
+
+Score: 4
+
+##### Gas efficiency
+
+TBD
+
+Score: TBD
+
 
 ### **References**
 
@@ -304,3 +371,8 @@ Score: TBD
 - [gnosis/zodiac-module-bridge](https://github.com/gnosis/zodiac-module-bridge)
 - [gnosis/zodiac-modifier-delay](https://github.com/gnosis/zodiac-modifier-delay)
 - [gnosis/zodiac-modifier-roles](https://github.com/gnosis/zodiac-modifier-roles)
+##### Compound 
+- [Compound Governance: Steps toward complete decentralization](https://medium.com/compound-finance/compound-governance-5531f524cf68)
+- [compound-finance/compound-protocol](https://github.com/compound-finance/compound-protocol)
+- [Compound Alpha Governance System Audit](https://blog.openzeppelin.com/compound-alpha-governance-system-audit/)
+- [Compound Governance Trail of Bits Asessment](https://github.com/trailofbits/publications/blob/master/reviews/compound-governance.pdf)
