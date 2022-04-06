@@ -298,7 +298,92 @@ As mentioned earlier, it uses an upgradeable pattern that would allow changing /
 
 If FIAT wanted to start with the existing code, but then change something (e.g., remove timelock, add vote-locking, etc.) that would be possible – you would just need the change to pass through the existing governance process, since you would need governance permission to change the delegator's (proxy's) implementation.
 
+Score: 4
+
+##### Gas efficiency
+
+TBD
+
+Score: TBD
+
+
+### **Frax Governance**
+
+#### <ins>Overview</ins>
+
+Fitting of a hybrid collateral/seignorage based stablecoin, Frax's governance system is a combination of the Compound and the Curve systems. Essentially, you can think of this as 'Compound governance but with veGovToken.' Because they are not a novel system, they are more of a case study of a model that FIAT might implement.
+
+On the Compound side, it has forked the exact *GovernorBravoDelegate* and *Timelock* contracts mentioned before. These contracts have all the necessary permissions to make changes in the underlying contracts (e.g., you can see [FXS](https://etherscan.io/address/0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0#readContract) pointing to the timelock). These contracts are not currently used for governance decisions, however; the team currently uses Snapshot voting & implements decisions through a protocol multisig. 
+
+This is accomplished through a simple modifier:
+
+```
+modifier onlyByOwnGov() {
+    require(msg.sender == owner || msg.sender == timelock_address, "You are not an owner or the governance timelock");
+    _;
+}
+```
+
+When they want to fully decentralize, they plan to set the 'owner' value to a burn address, so that the timelock is the only one with control.
+
+On the Curve side, it uses slightly modified version of veCRV (diff [here](https://www.diffchecker.com/Sqm7PfNt)). This works exactly like Curve's system, where the amount of veFXS you receive is proportional to (a) the amount of FXS you stake and (b) the length of escrow (e.g., 100 FXS locked for 4 years yields 400 veFXS), and the amount of veFXS you hold decays linearly until veFXS = FXS at 0 time remaining.
+
+Overall, I think the Frax model is a strong contender because it meets a lot of the requirements laid out (ability for team to make decisions, ability to lock FDT, and highly-secure code).
+
+There are also some problems, however. The most important one is extensibility: although it would be possible to build on this system, it's not engineered to be modular (unlike Zodiac, for example), which makes the system hard to maintain as it grows. For example, the Frax team is currently trying to figure out how they can have both veFXS and FXS vote in GovernorBravo, since this kind of functionality wasn't intended by the Compound team. 
+
+There is also the more minor point of Curve being in Vyper and Compound being in Solidity. FWIW, Yearn uses both Vyper and Solidity, and it surprisingly doesn't cause many developer headaches, at least in Brownie and Foundry. Still a context-switching cost though.
+
+#### <ins>Analysis & Scoring</ins>
+
+Since we have already covered Compound, I'm going to answer all of these in reference to the Curve governance contracts, most notably VotingEscrow.vy.
+
+##### Ability to use sub-committees / not engage entire community for all decisions
+
+Definitely. It would be possible to use the same modifier they have, and have a FIAT multisig as one of the approved parties. Still, you don't lose to option to have the community make those decisions as well.
+
 Score: 5
+
+##### Ability to lock FDT
+
+Yep, handled by the [VotingEscrow.vy](https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy) contract.
+
+One way to integrate veFDT natively into the Governance module would be to add the following function in VotingEscrow.vy:
+
+```
+function getPriorVotes(address account, uint blockNumber) external view returns (uint96);
+```
+
+This is what Bravo uses as a 'voter-counter' for a specific user. An implementation would be pretty simple, and would just wrap [this](https://github.com/curvefi/curve-dao-contracts/blob/4e428823c8ae9c0f8a669d796006fade11edb141/contracts/VotingEscrow.vy#L546) function. 
+
+Alternatively, if FIAT wanted to implement arbitrary voting logic, similar to Element, it could implement a separate contract with this function, which could add separate logic for vote-tallying (e.g., allowing regular FDT holders to also vote).
+
+Score: 5
+
+##### How the code is written and maintained
+
+We've already talked about Compound, so referring to the Curve ve contract:
+
+It's reasonably well-written and very well-documented ([src](https://curve.readthedocs.io/dao-vecrv.html)), although it probably could have been a little cleaner. For example, to increase the escrow time of someone's governance token, they internally trigger a 0 deposit of the user ([src](https://github.com/curvefi/curve-dao-contracts/blob/4e428823c8ae9c0f8a669d796006fade11edb141/contracts/VotingEscrow.vy#L464)) which feels a little hacky.
+
+3 people contributed, and there haven't been any changes since August 2020. Also Vyper.
+
+Score: 3
+
+
+##### How many audits have been performed & the quality of the auditors
+
+Although the fact that there haven't been any changes since August 2020 is a sign of lack of maintenance, it's positive from a security perspective. The fact that about 50% of all CRV, or $1.2B, is locked in this contract, and that no significant bugs have been found is a positive signal stronger than an audit report.
+
+Still, Curve hasn't hired any audit firms to specifically audit the governance contracts.
+
+Score: 3.5
+
+##### An "exit lever" i.e., the ability to switch to another governance contract
+
+The ve code is immutable. However, the Compound Governance module would be able to simutaneously allow multiple tokens at once, which would allow for a migration process.
+
+Score: 2
 
 ##### Gas efficiency
 
@@ -372,8 +457,18 @@ Score: TBD
 - [gnosis/zodiac-module-bridge](https://github.com/gnosis/zodiac-module-bridge)
 - [gnosis/zodiac-modifier-delay](https://github.com/gnosis/zodiac-modifier-delay)
 - [gnosis/zodiac-modifier-roles](https://github.com/gnosis/zodiac-modifier-roles)
-##### Compound 
+##### Compound Governance
 - [Compound Governance: Steps toward complete decentralization](https://medium.com/compound-finance/compound-governance-5531f524cf68)
 - [compound-finance/compound-protocol](https://github.com/compound-finance/compound-protocol)
 - [Compound Alpha Governance System Audit](https://blog.openzeppelin.com/compound-alpha-governance-system-audit/)
 - [Compound Governance Trail of Bits Asessment](https://github.com/trailofbits/publications/blob/master/reviews/compound-governance.pdf)
+##### Frax Governance
+- [Frax Docs: Governance](https://docs.frax.finance/smart-contracts/governance)
+- [Frax Docs: veFXS](https://docs.frax.finance/vefxs/vefxs)
+- [Frax Governance Forum](https://gov.frax.finance/)
+- [Ceazor's Overview](https://youtu.be/ce9y8_bQCIE)
+- [veCRV & veFXS contracts](https://www.diffchecker.com/Sqm7PfNt)
+- [FXS contract state](https://etherscan.io/address/0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0#readContract)
+- [Curve Dune Analytics Dashboard](https://dune.xyz/mrblock_buidl/Curve.fi)
+- [Curve Docs](https://curve.readthedocs.io/dao-vecrv.html)
+- [Curve Audits page](https://curve.fi/audits)
