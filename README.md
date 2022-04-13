@@ -50,9 +50,9 @@ Score: 2
 
 ##### Ability to lock FDT
 
-Yes, and there is already an [implementation](https://github.com/element-fi/council/blob/main/contracts/vaults/LockingVault.sol) that FIAT could use.
+There is an [implementation](https://github.com/element-fi/council/blob/main/contracts/vaults/LockingVault.sol) that FIAT could use for regular staking. However, the locking of votes for higher voting power (the 've' mechanism) is not already created. However, the voting vault mechanism is abstract enough that Comitium could become a voting vault.
 
-Score: 5
+Score: 4
 
 ##### How the code is written and maintained
 
